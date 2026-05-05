@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.24)
 project(turdus
     VERSION 0.1.0
     DESCRIPTION "Piano roll, sequencer and MIDI clock"
-    LANGUAGES CXX)
+    LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -72,6 +72,13 @@ FetchContent_Declare(JUCE
     GIT_SHALLOW    TRUE)
 FetchContent_MakeAvailable(JUCE)
 
+FetchContent_Declare(nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3
+    GIT_SHALLOW    TRUE)
+set(JSON_BuildTests OFF CACHE INTERNAL "")
+FetchContent_MakeAvailable(nlohmann_json)
+
 if(TURDUS_BUILD_TESTS)
     FetchContent_Declare(Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
@@ -106,8 +113,7 @@ target_sources(turdus PRIVATE src/main.cpp)
 
 target_compile_definitions(turdus PRIVATE
     JUCE_USE_CURL=0
-    JUCE_REPORT_APP_USAGE=0
-    JUCE_DISPLAY_SPLASH_SCREEN=1)
+    JUCE_REPORT_APP_USAGE=0)
 
 target_link_libraries(turdus PRIVATE
     turdus_core
@@ -122,6 +128,19 @@ target_link_libraries(turdus PRIVATE
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags)
+
+# ---------------------------------------------------------------------------
+# Tools
+# ---------------------------------------------------------------------------
+option(TURDUS_BUILD_SMOKE "Build the MIDI smoke CLI (requires JUCE audio modules)" ON)
+if(TURDUS_BUILD_SMOKE)
+    add_subdirectory(tools/smoke)
+endif()
+
+option(TURDUS_BUILD_PLAY "Build the engine playback CLI (requires JUCE audio modules)" ON)
+if(TURDUS_BUILD_PLAY)
+    add_subdirectory(tools/play)
+endif()
 
 # ---------------------------------------------------------------------------
 # Tests

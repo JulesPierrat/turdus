@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "name": "Sample fixture",
+  "tempo": 120.0,
+  "time_signature": { "numerator": 4, "denominator": 4 },
+  "tracks": [
+    {
+      "id": 1,
+      "name": "Lead",
+      "port_label": "Synth",
+      "channel": 0,
+      "muted": false,
+      "soloed": false,
+      "transpose": 0,
+      "patterns": [
+        {
+          "id": 1,
+          "name": "Verse",
+          "length": 3840,
+          "default_channel": 0,
+          "notes": [
+            { "id": 1, "pitch": 60, "start": 0,   "length": 240, "velocity": 100 },
+            { "id": 2, "pitch": 64, "start": 240, "length": 240, "velocity": 90  },
+            { "id": 3, "pitch": 67, "start": 480, "length": 480, "velocity": 110 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Drums",
+      "port_label": "DrumMachine",
+      "channel": 9,
+      "muted": false,
+      "soloed": false,
+      "transpose": 0,
+      "patterns": [
+        {
+          "id": 2,
+          "name": "Beat",
+          "length": 1920,
+          "default_channel": 9,
+          "notes": [
+            { "id": 4, "pitch": 36, "start": 0,    "length": 120, "velocity": 100 },
+            { "id": 5, "pitch": 38, "start": 480,  "length": 120, "velocity": 100 },
+            { "id": 6, "pitch": 36, "start": 960,  "length": 120, "velocity": 100 },
+            { "id": 7, "pitch": 38, "start": 1440, "length": 120, "velocity": 100 }
+          ]
+        }
+      ]
+    }
+  ],
+  "arrangement": [
+    { "track_id": 1, "pattern_id": 1, "start": 0 },
+    { "track_id": 2, "pattern_id": 2, "start": 0 },
+    { "track_id": 1, "pattern_id": 1, "start": 3840 }
+  ],
+  "port_mappings": [
+    { "label": "Synth",       "device_name": "IAC Driver Bus 1", "send_clock": false },
+    { "label": "DrumMachine", "device_name": "IAC Driver Bus 2", "send_clock": true }
+  ]
+}
