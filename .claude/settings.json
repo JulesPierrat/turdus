@@ -3,7 +3,21 @@
     "allow": [
       "Bash(cmake --version)",
       "Bash(apt list *)",
-      "Bash(ninja --version)"
+      "Bash(ninja --version)",
+      "Bash(grep -E '\\\\.\\(pub|pem\\)$|id_')",
+      "Bash(ssh-add -l)",
+      "Bash(ssh -T -o StrictHostKeyChecking=accept-new -o BatchMode=yes git@github.com)",
+      "Bash(echo \"---exit:$?---\")",
+      "Bash(ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_julespierrat -N \"\" -C \"jules.pierrat1@hotmail.fr \\(JulesPierrat user key\\)\")",
+      "Bash(chmod 600 ~/.ssh/config)",
+      "Bash(ssh -T -o BatchMode=yes git@github.com)",
+      "Bash(g++ --version)",
+      "Bash(lsb_release -d)",
+      "Bash(cmake --build --preset debug)",
+      "Bash(ctest --preset debug)"
+    ],
+    "additionalDirectories": [
+      "/home/jules/.ssh"
     ]
   }
 }
