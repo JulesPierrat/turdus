@@ -47,6 +47,12 @@ public:
     bool save_project(const std::filesystem::path& path);
     void new_project();
 
+    // Loop region. start == end disables looping. Updates both the project
+    // (so it persists in saved files) and the engine.
+    void set_loop(core::Tick start, core::Tick end);
+    core::Tick loop_start() const noexcept { return project_.loop().start; }
+    core::Tick loop_end() const noexcept { return project_.loop().end; }
+
     // ---------------------------------------------------------------- ports
     std::vector<std::string> available_ports();
 
@@ -102,7 +108,7 @@ private:
     engine::Clock clock_;
 
     void apply_pending_commands();           // engine-thread side
-    void install_first_pattern_into_engine();  // UI-thread side
+    void install_project_into_engine();        // UI-thread side
     void stop_clock_briefly();
     void resume_clock_if_was_running(bool was_running);
 

@@ -31,6 +31,18 @@ struct MidiPortMapping {
     bool operator==(const MidiPortMapping&) const = default;
 };
 
+// Song-level loop region in absolute song ticks. Disabled when start == end —
+// transport then plays linearly without wrapping.
+struct LoopRegion {
+    core::Tick start{0};
+    core::Tick end{0};
+
+    constexpr bool enabled() const noexcept { return end > start; }
+    constexpr core::Tick length() const noexcept { return end - start; }
+
+    constexpr auto operator<=>(const LoopRegion&) const noexcept = default;
+};
+
 class Project {
 public:
     struct TrackEntry {
@@ -73,6 +85,9 @@ public:
     MidiPortMapping* find_port_mapping(const std::string& label);
     const MidiPortMapping* find_port_mapping(const std::string& label) const;
 
+    LoopRegion loop() const noexcept { return loop_; }
+    void set_loop(LoopRegion loop) noexcept { loop_ = loop; }
+
     bool operator==(const Project&) const = default;
 
 private:
@@ -82,6 +97,7 @@ private:
     std::vector<TrackEntry> tracks_;
     std::vector<PatternPlacement> arrangement_;
     std::vector<MidiPortMapping> port_mappings_;
+    LoopRegion loop_{};
 };
 
 }  // namespace turdus::model

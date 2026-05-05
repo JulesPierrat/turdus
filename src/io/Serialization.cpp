@@ -147,6 +147,18 @@ void from_json(const nlohmann::json& j, MidiPortMapping& m) {
     j.at("send_clock").get_to(m.send_clock);
 }
 
+void to_json(nlohmann::json& j, const LoopRegion& r) {
+    j = nlohmann::json{
+        {"start", r.start},
+        {"end", r.end},
+    };
+}
+
+void from_json(const nlohmann::json& j, LoopRegion& r) {
+    j.at("start").get_to(r.start);
+    j.at("end").get_to(r.end);
+}
+
 void to_json(nlohmann::json& j, const Project& p) {
     auto tracks = nlohmann::json::array();
     for (const auto& entry : p.tracks()) {
@@ -161,6 +173,7 @@ void to_json(nlohmann::json& j, const Project& p) {
         {"tracks", std::move(tracks)},
         {"arrangement", p.arrangement()},
         {"port_mappings", p.port_mappings()},
+        {"loop", p.loop()},
     };
 }
 
@@ -183,6 +196,11 @@ void from_json(const nlohmann::json& j, Project& p) {
 
     for (const auto& m_json : j.at("port_mappings")) {
         result.add_port_mapping(m_json.get<MidiPortMapping>());
+    }
+
+    // Loop region is optional for backward compatibility with v1 schema files.
+    if (j.contains("loop")) {
+        result.set_loop(j.at("loop").get<LoopRegion>());
     }
 
     p = std::move(result);

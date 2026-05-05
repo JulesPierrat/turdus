@@ -122,6 +122,24 @@ PianoRollEditor::~PianoRollEditor() {
     piano_roll_.set_listener(nullptr);
 }
 
+void PianoRollEditor::select_pattern(model::TrackId track_id,
+                                     model::PatternId pattern_id) {
+    const auto& project = controller_.project();
+    for (std::size_t ti = 0; ti < project.tracks().size(); ++ti) {
+        const auto& te = project.tracks()[ti];
+        if (te.id != track_id) {
+            continue;
+        }
+        for (std::size_t pi = 0; pi < te.track.patterns().size(); ++pi) {
+            if (te.track.patterns()[pi].id == pattern_id) {
+                pattern_picker_.setSelectedId(encode_id(ti, pi),
+                                              juce::sendNotification);
+                return;
+            }
+        }
+    }
+}
+
 void PianoRollEditor::paint(juce::Graphics& g) {
     g.fillAll(findColour(juce::ResizableWindow::backgroundColourId));
 }

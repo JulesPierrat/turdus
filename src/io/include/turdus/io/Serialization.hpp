@@ -71,6 +71,9 @@ void from_json(const nlohmann::json& j, PatternPlacement& p);
 void to_json(nlohmann::json& j, const MidiPortMapping& m);
 void from_json(const nlohmann::json& j, MidiPortMapping& m);
 
+void to_json(nlohmann::json& j, const LoopRegion& r);
+void from_json(const nlohmann::json& j, LoopRegion& r);
+
 void to_json(nlohmann::json& j, const Project& p);
 void from_json(const nlohmann::json& j, Project& p);
 

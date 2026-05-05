@@ -14,7 +14,8 @@
       "Bash(g++ --version)",
       "Bash(lsb_release -d)",
       "Bash(cmake --build --preset debug)",
-      "Bash(ctest --preset debug)"
+      "Bash(ctest --preset debug)",
+      "Bash(ctest --preset debug --output-on-failure -R \"Loop region\")"
     ],
     "additionalDirectories": [
       "/home/jules/.ssh"

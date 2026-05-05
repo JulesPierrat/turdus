@@ -5,6 +5,7 @@
 #include <turdus/app/AppController.hpp>
 #include <turdus/ui/PianoRollEditor.hpp>
 #include <turdus/ui/PortsPanel.hpp>
+#include <turdus/ui/SongViewComponent.hpp>
 #include <turdus/ui/TransportBar.hpp>
 
 namespace turdus::ui {
@@ -17,13 +18,23 @@ public:
     explicit Content(app::AppController& controller, juce::MenuBarModel& menu_model)
         : transport_(controller),
           ports_(controller),
+          song_view_(controller),
           piano_roll_(controller),
           menu_(&menu_model) {
         addAndMakeVisible(menu_);
         addAndMakeVisible(transport_);
         addAndMakeVisible(ports_);
+        addAndMakeVisible(song_view_);
         addAndMakeVisible(piano_roll_);
-        setSize(1100, 700);
+
+        // Cross-component navigation: double-click in song view → switch the
+        // piano roll's selected pattern.
+        song_view_.set_navigate_callback(
+            [this](model::TrackId t, model::PatternId p) {
+                piano_roll_.select_pattern(t, p);
+            });
+
+        setSize(1200, 820);
     }
 
     void resized() override {
@@ -32,12 +43,14 @@ public:
                                               .getDefaultMenuBarHeight()));
         transport_.setBounds(area.removeFromTop(56));
         ports_.setBounds(area.removeFromTop(80));
+        song_view_.setBounds(area.removeFromTop(180));
         piano_roll_.setBounds(area);
     }
 
 private:
     TransportBar transport_;
     PortsPanel ports_;
+    SongViewComponent song_view_;
     PianoRollEditor piano_roll_;
     juce::MenuBarComponent menu_;
 };
@@ -52,7 +65,7 @@ MainWindow::MainWindow(app::AppController& controller)
     setUsingNativeTitleBar(true);
     setResizable(true, true);
     setContentOwned(content_.release(), true);
-    centreWithSize(1100, 700);
+    centreWithSize(1200, 820);
     setVisible(true);
 }
 

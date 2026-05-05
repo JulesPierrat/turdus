@@ -196,9 +196,14 @@ TEST_CASE("Stop releases held notes BEFORE emitting 0xFC",
     Engine eng{&port};
     eng.set_clock_enabled(true);
 
-    Pattern p{"test", Tick{960}, Channel{0}};
-    p.add_note(Note{Pitch{60}, Tick{0}, Tick{800}, Velocity{100}});
-    eng.set_pattern(p, Channel{0});
+    Project project;
+    auto tid = project.add_track(Track{"t", "", Channel{0}});
+    auto* track = project.find_track(tid);
+    Pattern pat{"test", Tick{960}, Channel{0}};
+    pat.add_note(Note{Pitch{60}, Tick{0}, Tick{800}, Velocity{100}});
+    auto pid = track->add_pattern(std::move(pat));
+    project.add_placement(PatternPlacement{tid, pid, Tick{0}});
+    eng.set_project(project);
 
     eng.transport().play();
     eng.advance(Tick{200});  // emits Start, clock pulses, note_on; off pending

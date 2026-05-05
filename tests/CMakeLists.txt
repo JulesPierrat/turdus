@@ -15,6 +15,7 @@ add_executable(turdus_tests
     engine/engine_tests.cpp
     engine/clock_tests.cpp
     engine/midi_clock_tests.cpp
+    engine/arrangement_tests.cpp
     app/spsc_queue_tests.cpp
     app/command_bus_tests.cpp
     app/app_controller_tests.cpp)

@@ -28,6 +28,11 @@ public:
     explicit PianoRollEditor(app::AppController& controller);
     ~PianoRollEditor() override;
 
+    // Programmatically point the editor at a specific (track, pattern). Used by
+    // the song view's double-click navigation. Silently no-ops if the pair is
+    // not currently in the project.
+    void select_pattern(model::TrackId track_id, model::PatternId pattern_id);
+
     void paint(juce::Graphics& g) override;
     void resized() override;
 

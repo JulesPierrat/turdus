@@ -9,6 +9,7 @@ target_sources(turdus_ui INTERFACE
     "${CMAKE_CURRENT_SOURCE_DIR}/PianoRollComponent.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PianoRollEditor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/PortsPanel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/SongViewComponent.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/TransportBar.cpp")
 
 target_include_directories(turdus_ui INTERFACE include)

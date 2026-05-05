@@ -60,13 +60,32 @@ int main(int argc, char* argv[]) {
     }
     auto& project = *loaded.project;
 
-    if (project.tracks().empty() || project.tracks().front().track.patterns().empty()) {
-        std::cerr << "project has no tracks/patterns to play\n";
+    if (project.tracks().empty()) {
+        std::cerr << "project has no tracks to play\n";
         juce::shutdownJuce_GUI();
         return 1;
     }
-    const auto& track = project.tracks().front().track;
-    const auto& pattern = track.patterns().front().pattern;
+
+    // If the loaded project has no arrangement entries, build a minimal one that
+    // plays every track's first pattern at t=0, with a loop region matching the
+    // longest such pattern. Lets older fixtures (pre-Phase-9 schema, or files
+    // authored without explicit arrangement) still play something.
+    if (project.arrangement().empty()) {
+        core::Tick longest{0};
+        for (const auto& te : project.tracks()) {
+            if (te.track.patterns().empty()) {
+                continue;
+            }
+            const auto& pe = te.track.patterns().front();
+            project.add_placement(model::PatternPlacement{te.id, pe.id, core::Tick{0}});
+            if (pe.pattern.length() > longest) {
+                longest = pe.pattern.length();
+            }
+        }
+        if (longest.value() > 0) {
+            project.set_loop(model::LoopRegion{core::Tick{0}, longest});
+        }
+    }
 
     auto backend = midi::make_juce_backend();
     auto ports = backend->list_output_ports();
@@ -96,7 +115,7 @@ int main(int argc, char* argv[]) {
     }
 
     engine::Engine eng{port.get()};
-    eng.set_pattern(pattern, track.channel());
+    eng.set_project(project);
     eng.transport().set_tempo(project.tempo());
     eng.set_clock_enabled(emit_clock);
     if (emit_clock) {
@@ -106,8 +125,11 @@ int main(int argc, char* argv[]) {
     engine::Clock clock;
     clock.attach(&eng);
 
-    std::cout << "Playing '" << project.name() << "' on track '" << track.name()
-              << "' / pattern '" << pattern.name() << "' (Ctrl+C to stop)...\n";
+    std::cout << "Playing '" << project.name() << "' ("
+              << project.tracks().size() << " track(s), "
+              << project.arrangement().size() << " placement(s))"
+              << (project.loop().enabled() ? ", looping" : "")
+              << " (Ctrl+C to stop)...\n";
     std::signal(SIGINT, on_sigint);
     eng.transport().play();
     clock.start();

@@ -46,7 +46,7 @@ void AppController::new_project() {
     }
     project_ = model::Project{};
     engine_.transport().stop();
-    engine_.clear_pattern();
+    engine_.clear_project();
     if (was_running) {
         clock_.start();
     }
@@ -65,7 +65,7 @@ bool AppController::open_project(const std::filesystem::path& path) {
 
     project_ = std::move(*loaded.project);
     engine_.transport().stop();
-    install_first_pattern_into_engine();
+    install_project_into_engine();
     engine_.transport().set_tempo(project_.tempo());
 
     if (was_running) {
@@ -78,16 +78,12 @@ bool AppController::save_project(const std::filesystem::path& path) {
     return io::ProjectIO::save(project_, path).ok();
 }
 
-void AppController::install_first_pattern_into_engine() {
-    if (project_.tracks().empty()
-        || project_.tracks().front().track.patterns().empty()) {
-        engine_.clear_pattern();
-        return;
-    }
-    const auto& track = project_.tracks().front().track;
-    const auto& pattern = track.patterns().front().pattern;
-    engine_.set_pattern(pattern, track.channel());
+void AppController::set_loop(core::Tick start, core::Tick end) {
+    project_.set_loop(model::LoopRegion{start, end});
+    engine_.set_loop(start, end);
 }
+
+void AppController::install_project_into_engine() { engine_.set_project(project_); }
 
 // ----- ports --------------------------------------------------------------------
 
@@ -173,14 +169,16 @@ model::Pattern* AppController::find_pattern(model::TrackId track_id,
 
 void AppController::resync_engine_if_needed(model::TrackId track_id,
                                             model::PatternId pattern_id) {
-    if (!is_engine_pattern(track_id, pattern_id)) {
-        return;
-    }
+    // Phase 9: any edited pattern that participates in the arrangement may need a
+    // resync. Cheap path: re-snapshot the whole project. The engine handles the
+    // pending-note release internally.
+    (void)track_id;
+    (void)pattern_id;
     const bool was_running = clock_.is_running();
     if (was_running) {
         clock_.stop();
     }
-    install_first_pattern_into_engine();
+    install_project_into_engine();
     if (was_running) {
         clock_.start();
     }
