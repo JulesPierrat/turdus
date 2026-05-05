@@ -1,0 +1,49 @@
+# Build directories
+build/
+build-*/
+out/
+cmake-build-*/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+Testing/
+
+# IDE / editor
+.idea/
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Generated build files
+Makefile
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Compiled artifacts
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.app
+
+# JUCE legacy build artifacts (we use CMake, but defensive)
+JuceLibraryCode/
+Builds/
+
+# Local config
+.env
+*.local
