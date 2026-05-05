@@ -1,5 +1,6 @@
 #include <turdus/app/AppController.hpp>
 
+#include <algorithm>
 #include <utility>
 
 #include <turdus/io/ProjectIO.hpp>
@@ -145,6 +146,135 @@ void AppController::apply_pending_commands() {
     while (bus_.try_pop(cmd)) {
         // No-op for Phase 6 — left as a hook for future commands.
     }
+}
+
+// ----- note edits ---------------------------------------------------------------
+
+bool AppController::is_engine_pattern(model::TrackId track_id,
+                                      model::PatternId pattern_id) const noexcept {
+    if (project_.tracks().empty()) {
+        return false;
+    }
+    const auto& first_track = project_.tracks().front();
+    if (first_track.id != track_id) {
+        return false;
+    }
+    if (first_track.track.patterns().empty()) {
+        return false;
+    }
+    return first_track.track.patterns().front().id == pattern_id;
+}
+
+model::Pattern* AppController::find_pattern(model::TrackId track_id,
+                                            model::PatternId pattern_id) {
+    auto* track = project_.find_track(track_id);
+    return track != nullptr ? track->find_pattern(pattern_id) : nullptr;
+}
+
+void AppController::resync_engine_if_needed(model::TrackId track_id,
+                                            model::PatternId pattern_id) {
+    if (!is_engine_pattern(track_id, pattern_id)) {
+        return;
+    }
+    const bool was_running = clock_.is_running();
+    if (was_running) {
+        clock_.stop();
+    }
+    install_first_pattern_into_engine();
+    if (was_running) {
+        clock_.start();
+    }
+}
+
+model::NoteId AppController::add_note(model::TrackId track_id,
+                                      model::PatternId pattern_id,
+                                      model::Note note) {
+    auto* pattern = find_pattern(track_id, pattern_id);
+    if (pattern == nullptr) {
+        return model::NoteId{};
+    }
+    const auto id = pattern->add_note(note);
+    resync_engine_if_needed(track_id, pattern_id);
+    return id;
+}
+
+bool AppController::remove_note(model::TrackId track_id,
+                                model::PatternId pattern_id,
+                                model::NoteId note_id) {
+    auto* pattern = find_pattern(track_id, pattern_id);
+    if (pattern == nullptr) {
+        return false;
+    }
+    if (!pattern->remove_note(note_id)) {
+        return false;
+    }
+    resync_engine_if_needed(track_id, pattern_id);
+    return true;
+}
+
+bool AppController::move_note(model::TrackId track_id,
+                              model::PatternId pattern_id,
+                              model::NoteId note_id,
+                              core::Tick new_start,
+                              core::Pitch new_pitch) {
+    auto* pattern = find_pattern(track_id, pattern_id);
+    if (pattern == nullptr) {
+        return false;
+    }
+    auto found = pattern->find_note(note_id);
+    if (!found) {
+        return false;
+    }
+    auto updated = *found;
+    updated.start = core::Tick{std::max<std::int64_t>(0, new_start.value())};
+    updated.pitch = new_pitch;
+    if (!pattern->update_note(note_id, updated)) {
+        return false;
+    }
+    resync_engine_if_needed(track_id, pattern_id);
+    return true;
+}
+
+bool AppController::resize_note(model::TrackId track_id,
+                                model::PatternId pattern_id,
+                                model::NoteId note_id,
+                                core::Tick new_length) {
+    auto* pattern = find_pattern(track_id, pattern_id);
+    if (pattern == nullptr) {
+        return false;
+    }
+    auto found = pattern->find_note(note_id);
+    if (!found) {
+        return false;
+    }
+    auto updated = *found;
+    updated.length = core::Tick{std::max<std::int64_t>(1, new_length.value())};
+    if (!pattern->update_note(note_id, updated)) {
+        return false;
+    }
+    resync_engine_if_needed(track_id, pattern_id);
+    return true;
+}
+
+bool AppController::set_note_velocity(model::TrackId track_id,
+                                      model::PatternId pattern_id,
+                                      model::NoteId note_id,
+                                      core::Velocity new_velocity) {
+    auto* pattern = find_pattern(track_id, pattern_id);
+    if (pattern == nullptr) {
+        return false;
+    }
+    auto found = pattern->find_note(note_id);
+    if (!found) {
+        return false;
+    }
+    auto updated = *found;
+    updated.velocity = new_velocity;
+    if (!pattern->update_note(note_id, updated)) {
+        return false;
+    }
+    resync_engine_if_needed(track_id, pattern_id);
+    return true;
 }
 
 }  // namespace turdus::app

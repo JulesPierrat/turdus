@@ -10,9 +10,14 @@
 #include <turdus/core/Tick.hpp>
 #include <turdus/engine/Clock.hpp>
 #include <turdus/engine/Engine.hpp>
+#include <turdus/core/Pitch.hpp>
+#include <turdus/core/Velocity.hpp>
 #include <turdus/midi/MidiBackend.hpp>
 #include <turdus/midi/MidiPort.hpp>
+#include <turdus/model/Note.hpp>
+#include <turdus/model/Pattern.hpp>
 #include <turdus/model/Project.hpp>
+#include <turdus/model/Track.hpp>
 
 namespace turdus::app {
 
@@ -51,6 +56,32 @@ public:
 
     const std::string& active_port_name() const noexcept { return active_port_name_; }
 
+    // ---------------------------------------------------------------- note edits
+    // All mutators target a specific (track, pattern). They return false if the
+    // track or pattern can't be found, the id collides, or any other validation
+    // fails — caller can treat as no-op.
+    //
+    // After a successful mutation, if the affected pattern is the one currently
+    // bound to the engine (Phase 8: track 0 / pattern 0), we briefly stop the
+    // clock, reload the pattern, and restart. Edits to other patterns don't touch
+    // the engine.
+
+    // Adds a note. Returns the new note's id (invalid id on failure).
+    model::NoteId add_note(model::TrackId, model::PatternId, model::Note);
+
+    bool remove_note(model::TrackId, model::PatternId, model::NoteId);
+
+    // Move a note in time and/or pitch. Other fields preserved.
+    bool move_note(model::TrackId, model::PatternId, model::NoteId,
+                   core::Tick new_start, core::Pitch new_pitch);
+
+    // Resize a note. Length is clamped to >= 1 tick.
+    bool resize_note(model::TrackId, model::PatternId, model::NoteId,
+                     core::Tick new_length);
+
+    bool set_note_velocity(model::TrackId, model::PatternId, model::NoteId,
+                           core::Velocity);
+
     // ---------------------------------------------------------------- read-only
     const model::Project& project() const noexcept { return project_; }
     bool is_playing() const noexcept;
@@ -74,6 +105,17 @@ private:
     void install_first_pattern_into_engine();  // UI-thread side
     void stop_clock_briefly();
     void resume_clock_if_was_running(bool was_running);
+
+    // True if (track, pattern) is the one the engine is currently configured to
+    // play. In Phase 8 v0 this is always (first track, first pattern).
+    bool is_engine_pattern(model::TrackId, model::PatternId) const noexcept;
+
+    // Locate a Pattern in the project (mutable). Returns nullptr if not found.
+    model::Pattern* find_pattern(model::TrackId, model::PatternId);
+
+    // After a mutation to a pattern, if it's the engine pattern, push the new
+    // content to the engine. Briefly stops the clock if it was running.
+    void resync_engine_if_needed(model::TrackId, model::PatternId);
 };
 
 }  // namespace turdus::app
