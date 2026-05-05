@@ -5,7 +5,7 @@
 namespace turdus::engine {
 
 void MidiClockEmitter::emit_play(core::Tick from_position) {
-    if (!enabled_ || port_ == nullptr) {
+    if (!enabled() || port_ == nullptr) {
         return;
     }
     if (from_position.value() == 0) {
@@ -16,14 +16,14 @@ void MidiClockEmitter::emit_play(core::Tick from_position) {
 }
 
 void MidiClockEmitter::emit_stop(core::Tick at_position) {
-    if (!enabled_ || port_ == nullptr) {
+    if (!enabled() || port_ == nullptr) {
         return;
     }
     port_->send(midi::MidiMessage::stop(), at_position);
 }
 
 void MidiClockEmitter::emit_pulses(core::Tick from, core::Tick to) {
-    if (!enabled_ || port_ == nullptr || to <= from) {
+    if (!enabled() || port_ == nullptr || to <= from) {
         return;
     }
     constexpr auto step = kTicksPerPulse;

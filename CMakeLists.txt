@@ -119,11 +119,13 @@ target_link_libraries(turdus PRIVATE
     turdus_core
     turdus_model
     turdus_midi
+    turdus_midi_juce
     turdus_engine
     turdus_io
     turdus_app
     turdus_ui
     turdus_sanitizers
+    juce::juce_audio_devices
     juce::juce_gui_basics
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags

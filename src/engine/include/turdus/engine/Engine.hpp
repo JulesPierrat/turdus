@@ -31,6 +31,13 @@ public:
     void set_pattern(const model::Pattern& pattern, core::Channel channel);
     void clear_pattern() noexcept;
 
+    // Swap the output port. Caller must ensure no concurrent advance() — typically
+    // by stopping the Clock thread first.
+    void set_port(midi::MidiPort* port) noexcept {
+        port_ = port;
+        clock_.set_port(port);
+    }
+
     void set_clock_enabled(bool e) noexcept { clock_.set_enabled(e); }
     bool clock_enabled() const noexcept { return clock_.enabled(); }
 

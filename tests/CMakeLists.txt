@@ -14,7 +14,9 @@ add_executable(turdus_tests
     engine/transport_tests.cpp
     engine/engine_tests.cpp
     engine/clock_tests.cpp
-    engine/midi_clock_tests.cpp)
+    engine/midi_clock_tests.cpp
+    app/spsc_queue_tests.cpp
+    app/command_bus_tests.cpp)
 
 target_compile_definitions(turdus_tests PRIVATE
     TURDUS_TESTS_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")

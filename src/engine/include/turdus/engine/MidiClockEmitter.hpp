@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include <turdus/core/Tick.hpp>
 #include <turdus/midi/MidiPort.hpp>
 
@@ -15,8 +17,13 @@ public:
 
     explicit MidiClockEmitter(midi::MidiPort* port) noexcept : port_(port) {}
 
-    void set_enabled(bool e) noexcept { enabled_ = e; }
-    bool enabled() const noexcept { return enabled_; }
+    // Swap the output port. Must not be called while emit_* is in flight on another
+    // thread — typical use is from the UI thread with the clock thread stopped.
+    void set_port(midi::MidiPort* port) noexcept { port_ = port; }
+
+    // Atomic for safe toggling from the UI thread while the engine thread reads it.
+    void set_enabled(bool e) noexcept { enabled_.store(e, std::memory_order_release); }
+    bool enabled() const noexcept { return enabled_.load(std::memory_order_acquire); }
 
     // Transport just transitioned Stopped → Playing. Emits Start (0xFA) if
     // resuming from position 0, Continue (0xFB) otherwise.
@@ -30,7 +37,7 @@ public:
 
 private:
     midi::MidiPort* port_;
-    bool enabled_{false};
+    std::atomic<bool> enabled_{false};
 };
 
 }  // namespace turdus::engine
